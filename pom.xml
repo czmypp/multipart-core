@@ -6,8 +6,7 @@
 
     <groupId>com.disware</groupId>
     <artifactId>multipart-core</artifactId>
-    <version>1.0.0-RELEASE</version>
-
+    <version>1.0.4-RELEASE</version>
 
     <build>
         <plugins>
@@ -17,28 +16,30 @@
                 <version>3.1.0</version>
             </plugin>
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>8</source>
-                    <target>8</target>
-                </configuration>
-            </plugin>
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-compiler-plugin</artifactId>-->
+<!--                <configuration>-->
+<!--                    <source>8</source>-->
+<!--                    <target>8</target>-->
+<!--                </configuration>-->
+<!--            </plugin>-->
         </plugins>
     </build>
     <dependencies>
-        <dependency>
+<!--        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.12</version>
             <scope>test</scope>
-        </dependency>
+        </dependency>-->
 
+        <!--使用 lombok 简化 Java 代码-->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.12</version>
+            <version>1.18.10</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
@@ -47,12 +48,12 @@
         <repository>
             <id>nexus-releases</id>
             <name>Releases name</name>
-            <url>http://nexus.hitotek.com/repository/hitotek-releases/</url>
+            <url>http://dagen-tec.com:9678/repository/dagen-release/</url>
         </repository>
         <snapshotRepository>
             <id>nexus-snapshots</id>
             <name>snapshots name</name>
-            <url>http://nexus.hitotek.com/repository/hitotek-snapshots/</url>
+            <url>http://dagen-tec.com:9678/repository/dagen-snapshot/</url>
         </snapshotRepository>
     </distributionManagement>
 

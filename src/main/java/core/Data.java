@@ -2,6 +2,8 @@ package core;
 
 import annotion.ProcessExtraExpression;
 import plugin.DefaultDataPlugin;
+import plugin.Pluggable;
+import plugin.TypePlugin;
 import support.*;
 import weapon.EntityWeapons;
 import weapon.KeyWeapons;
@@ -18,8 +20,11 @@ import java.util.*;
  */
 @SuppressWarnings({"WeakerAccess", "UnusedReturnValue"})
 public class Data extends LinkedHashMap<String, Object>
-        implements BasicDataOptionalSupport<String>, CollectionOptionalSupport<String>, ComplexOptionalSupport<String> {
-    private static Set<Class<?>> BASIC_WRAPPED_TYPES;
+        implements Pluggable, BasicDataOptionalSupport<String>, CollectionOptionalSupport<String>, ComplexOptionalSupport<String> {
+    private static final Set<Class<?>> BASIC_WRAPPED_TYPES;
+
+    @SuppressWarnings("rawtypes")
+    private Map<String, TypePlugin> plugins = new HashMap<>();
     private boolean memoryOptimization = false;
     private static final Byte SINGE_LEN_STR = 1;
 
@@ -39,6 +44,7 @@ public class Data extends LinkedHashMap<String, Object>
         BASIC_WRAPPED_TYPES.add(Float.class);
         BASIC_WRAPPED_TYPES.add(Double.class);
         BASIC_WRAPPED_TYPES.add(Boolean.class);
+        BASIC_WRAPPED_TYPES.add(Character.class);
         BASIC_WRAPPED_TYPES.add(Character.class);
     }
 
@@ -428,6 +434,21 @@ public class Data extends LinkedHashMap<String, Object>
         }
         if (tClass.isAssignableFrom(o.getClass())) {
             return tClass.cast(o);
+        } else if (this.plugins.size() > 0) {
+            for (String pluginName : this.plugins.keySet()) {
+                @SuppressWarnings("rawtypes")
+                TypePlugin plugin = this.plugins.get(pluginName);
+                Object output;
+                try {
+                    //noinspection unchecked
+                    output = plugin.doTrans(o);
+                } catch (Exception e) {
+                    continue;
+                }
+                if (tClass.isAssignableFrom(output.getClass())) {
+                    return tClass.cast(output);
+                }
+            }
         }
         return deep ? this.deepTrans(tClass, key) : null;
     }
@@ -496,8 +517,12 @@ public class Data extends LinkedHashMap<String, Object>
     }
 
     public boolean isPresent(String value) {
-        return super.containsKey(KeyWeapons.convert(value))
-                || super.containsKey(KeyWeapons.convertLine(value));
+        return isPresent("", "", value);
+    }
+
+    public boolean isPresent(String prefix, String suffix, String value) {
+        return super.containsKey(prefix + KeyWeapons.convert(value) + suffix)
+                || super.containsKey(prefix + KeyWeapons.convertLine(value) + suffix);
     }
 
     private <T> void parseField(Field field, T target, boolean deep, String prefix, String suffix) {
@@ -506,7 +531,7 @@ public class Data extends LinkedHashMap<String, Object>
         Class<?> type = field.getType();
         String fieldName = field.getName();
         if (!List.class.isAssignableFrom(type)) {
-            String realKey = prefix.concat(fieldName).concat(suffix);
+            String realKey = prefix.concat(KeyWeapons.convertLine(fieldName)).concat(suffix);
             if (!this.isPresent(realKey)) {
                 return;
             }
@@ -523,5 +548,24 @@ public class Data extends LinkedHashMap<String, Object>
             }
         }
         field.setAccessible(false);
+    }
+
+    @Override
+    public <I, O> Pluggable install(TypePlugin<I, O> plugin) {
+        if (null != plugin) {
+            String name = getPluginFromClass(plugin.getClass());
+            plugins.put(name, plugin);
+        }
+        return this;
+    }
+
+    @Override
+    public <I, O> Pluggable uninstall(Class<TypePlugin<I, O>> type) {
+        this.plugins.remove(getPluginFromClass(type));
+        return this;
+    }
+
+    private String getPluginFromClass(@SuppressWarnings("rawtypes") Class<? extends TypePlugin> type) {
+        return type.getSimpleName();
     }
 }

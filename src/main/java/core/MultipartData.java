@@ -184,6 +184,13 @@ public class MultipartData extends Data implements IMultipart {
         return this;
     }
 
+    public MultipartData include(boolean condition, String key, Object value) {
+        if (condition) {
+            super.include(key, value);
+        }
+        return this;
+    }
+
     @Override
     public MultipartData exclude(String key) {
         super.exclude(key);
@@ -242,4 +249,5 @@ public class MultipartData extends Data implements IMultipart {
         }
         return null;
     }
+
 }
